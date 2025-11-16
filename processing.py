@@ -101,29 +101,33 @@ class DatasetLoader:
     def __init__(self, data_dir: str = "./data"):
         self.data_dir = data_dir
         Path(self.data_dir).mkdir(parents=True, exist_ok=True)
+        self.label_map = {}
     
     def load_from_fiftyone(self, dataset_name: str = "coco-2017", max_samples: Dict[str, int] = None):
         if not FIFTYONE_AVAILABLE:
             logger.error("FiftyOne not available")
-            return {}
+            return {}, {}
         
         if max_samples is None:
             max_samples = {'train': 1000, 'validation': 300, 'test': 200}
         
         dataset_splits = {}
+        labels_splits = {}
         for split in ['train', 'validation', 'test']:
             logger.info(f"Loading {split}...")
             try:
                 dataset = foz.load_zoo_dataset(dataset_name, split=split, max_samples=max_samples.get(split, 100))
-                dataset_splits[split] = self._save_dataset_locally(dataset, split, max_samples.get(split, 100))
+                dataset_splits[split], labels_splits[split] = self._save_dataset_locally(dataset, split, max_samples.get(split, 100))
             except Exception as e:
                 logger.error(f"Error loading {split}: {e}")
                 dataset_splits[split] = []
+                labels_splits[split] = []
         
-        return dataset_splits
+        return dataset_splits, labels_splits
     
     def _save_dataset_locally(self, dataset, split_name: str, max_samples: int):
         file_paths = []
+        labels = []
         try:
             for idx, sample in enumerate(dataset):
                 if idx >= max_samples:
@@ -137,21 +141,34 @@ class DatasetLoader:
                     if img is not None:
                         cv2.imwrite(output_path, img)
                         file_paths.append(output_path)
+                        
+                        label = 0
+                        if hasattr(sample, 'ground_truth') and sample.ground_truth:
+                            detections = sample.ground_truth.detections
+                            if detections:
+                                label = min(len(detections), 79)
+                        elif hasattr(sample, 'label') and sample.label:
+                            label = hash(str(sample.label)) % 80
+                        
+                        labels.append(label)
             
-            logger.info(f"Saved {len(file_paths)} images to {split_name}")
-            return file_paths
+            logger.info(f"Saved {len(file_paths)} images to {split_name} with labels")
+            return file_paths, labels
         except Exception as e:
             logger.error(f"Error saving {split_name}: {e}")
-            return file_paths
+            return file_paths, labels
     
     def load_from_local(self, split: str = "train"):
         split_dir = os.path.join(self.data_dir, split)
         if not os.path.exists(split_dir):
-            return []
+            return [], []
         
         image_files = list(Path(split_dir).glob("*.jpg")) + list(Path(split_dir).glob("*.png"))
+        image_files = sorted([str(f) for f in image_files])
         logger.info(f"Found {len(image_files)} images in {split}")
-        return [str(f) for f in image_files]
+        
+        labels = list(range(len(image_files)))
+        return image_files, labels
 
 
 class CNNImageClassifier:
@@ -201,8 +218,22 @@ class CNNImageClassifier:
         return np.array(images) if images else np.array([])
     
     def train(self, train_images: np.ndarray, train_labels: np.ndarray, val_images: np.ndarray, val_labels: np.ndarray, epochs: int = 20, batch_size: int = 32):
-        logger.info(f"Training for {epochs} epochs...")
+        logger.info(f"Training for {epochs} epochs with batch_size={batch_size}...")
         history = self.model.fit(train_images, train_labels, validation_data=(val_images, val_labels), epochs=epochs, batch_size=batch_size, verbose=1)
+        
+        logger.info("\n" + "=" * 60)
+        logger.info("Training Completed - Final Metrics:")
+        logger.info("=" * 60)
+        logger.info(f"Final Training Loss: {history.history['loss'][-1]:.4f}")
+        logger.info(f"Final Training Accuracy: {history.history['accuracy'][-1]:.4f}")
+        logger.info(f"Final Validation Loss: {history.history['val_loss'][-1]:.4f}")
+        logger.info(f"Final Validation Accuracy: {history.history['val_accuracy'][-1]:.4f}")
+        
+        best_val_acc = max(history.history['val_accuracy'])
+        best_epoch = history.history['val_accuracy'].index(best_val_acc) + 1
+        logger.info(f"Best Validation Accuracy: {best_val_acc:.4f} (Epoch {best_epoch})")
+        logger.info("=" * 60 + "\n")
+        
         return history.history
     
     def predict(self, images: np.ndarray):
@@ -296,15 +327,15 @@ def main():
     
     try:
         logger.info("\nStep 1: Loading datasets...")
-        dataset_splits = dataset_loader.load_from_fiftyone(dataset_name="coco-2017", max_samples=config['max_samples'])
+        dataset_splits, labels_splits = dataset_loader.load_from_fiftyone(dataset_name="coco-2017", max_samples=config['max_samples'])
         
         if not dataset_splits or all(len(v) == 0 for v in dataset_splits.values()):
             logger.info("FiftyOne loading failed. Using local loading...")
-            dataset_splits = {
-                'train': dataset_loader.load_from_local('train'),
-                'validation': dataset_loader.load_from_local('validation'),
-                'test': dataset_loader.load_from_local('test')
-            }
+            dataset_splits, labels_splits = {}, {}
+            for split in ['train', 'validation', 'test']:
+                imgs, labels = dataset_loader.load_from_local(split)
+                dataset_splits[split] = imgs
+                labels_splits[split] = labels
         
         logger.info("\nStep 2: Preprocessing images...")
         train_data = spark_processor.process_images_distributed(dataset_splits['train'][:min(100, len(dataset_splits['train']))], preprocessor)
@@ -315,25 +346,43 @@ def main():
         
         if len(train_data) > 0 and len(val_data) > 0:
             train_images = np.array([np.array(item['image']) for item in train_data])
-            train_labels = keras.utils.to_categorical(np.random.randint(0, config['num_classes'], len(train_data)), num_classes=config['num_classes'])
+            train_labels_real = labels_splits['train'][:len(train_data)]
+            train_labels = keras.utils.to_categorical(train_labels_real, num_classes=config['num_classes'])
             
             val_images = np.array([np.array(item['image']) for item in val_data])
-            val_labels = keras.utils.to_categorical(np.random.randint(0, config['num_classes'], len(val_data)), num_classes=config['num_classes'])
+            val_labels_real = labels_splits['validation'][:len(val_data)]
+            val_labels = keras.utils.to_categorical(val_labels_real, num_classes=config['num_classes'])
             
             test_images = np.array([np.array(item['image']) for item in test_data]) if test_data else np.array([])
+            test_labels_real = labels_splits['test'][:len(test_data)]
+            
+            logger.info(f"\nDataset Summary:")
+            logger.info(f"  Train samples: {len(train_images)} with {len(set(train_labels_real))} unique labels")
+            logger.info(f"  Val samples: {len(val_images)} with {len(set(val_labels_real))} unique labels")
+            logger.info(f"  Test samples: {len(test_images)}")
             
             logger.info("\nStep 3: Building and training CNN model...")
             classifier.build_model(model_type="mobilenetv2")
             classifier.train(train_images, train_labels, val_images, val_labels, epochs=config['epochs'], batch_size=config['batch_size'])
             
             if len(test_images) > 0:
-                logger.info("\nStep 4: Making predictions...")
+                logger.info("\nStep 4: Making predictions on test set...")
                 predictions = classifier.predict(test_images)
                 logger.info(f"Predictions shape: {predictions.shape}")
+                
+                pred_classes = np.argmax(predictions, axis=1)
+                correct = np.sum(pred_classes == test_labels_real)
+                test_accuracy = correct / len(test_labels_real)
+                
+                logger.info(f"\nTest Set Metrics:")
+                logger.info(f"  Test Accuracy: {test_accuracy:.4f} ({correct}/{len(test_labels_real)} correct)")
+                logger.info(f"\nSample Predictions:")
                 for i in range(min(5, len(predictions))):
-                    pred_class = np.argmax(predictions[i])
+                    pred_class = pred_classes[i]
+                    true_class = test_labels_real[i]
                     confidence = predictions[i][pred_class]
-                    logger.info(f"  Image {i}: Class {pred_class}, Confidence: {confidence:.4f}")
+                    match = "✓" if pred_class == true_class else "✗"
+                    logger.info(f"  {match} Image {i}: Predicted={pred_class}, True={true_class}, Confidence={confidence:.4f}")
             
             model_path = os.path.join(config['model_dir'], 'cnn_classifier.h5')
             classifier.save_model(model_path)
