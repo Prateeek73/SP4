@@ -28,8 +28,8 @@ echo "========================================"
 # Submit to Spark cluster with optimized configurations
 spark-submit \
   --master spark://hadoop1:7077 \
-  --conf spark.pyspark.python=$py \
-  --conf spark.pyspark.driver.python=$py \
+  --conf spark.pyspark.python=$PYSPARK_PYTHON \
+  --conf spark.pyspark.driver.python=$PYSPARK_DRIVER_PYTHON \
   --driver-memory 2g \
   --executor-memory 2g \
   --num-executors 2 \
