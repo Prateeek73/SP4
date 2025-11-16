@@ -1,26 +1,21 @@
 import subprocess, sys, os
 import numpy as np
-try: import cv2
-except: cv2 = None
+import cv2
 from pathlib import Path
 from typing import List, Tuple, Dict
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-try: from pyspark.sql import SparkSession
-except: SparkSession = None
-try: from pyspark.sql.functions import col
-except: col = None
+from pyspark.sql import SparkSession
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers, models
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.optimizers import Adam
 try:
-    import tensorflow as tf
-    from tensorflow import keras
-    from tensorflow.keras import layers, models
-    from tensorflow.keras.applications import MobileNetV2
-    from tensorflow.keras.optimizers import Adam
-except: keras = None
-try:
-    import fiftyone.zoo as foz
-except: foz = None
+    import fiftyone as fo
+except: fo = None
+
 
 class ImagePreprocessor:
     def __init__(self, size=(224,224)): self.size = size
@@ -76,10 +71,10 @@ class DatasetLoader:
             if self.check_hdfs_exists(hdfs_sp, exp_count):
                 logger.info(f"Found {hdfs_sp} in HDFS, loading from there...")
                 splits[actual_sp], labels[actual_sp] = self.load_local(hdfs_sp)
-            elif foz:
+            elif fo:
                 logger.info(f"Loading {actual_sp} from FiftyOne and saving to HDFS...")
                 try:
-                    ds = foz.load_zoo_dataset(name, split=actual_sp, max_samples=exp_count)
+                    ds = fo.load_zoo_dataset(name, split=actual_sp, max_samples=exp_count)
                     splits[actual_sp], labels[actual_sp] = self._save_to_hdfs(ds, hdfs_sp, exp_count)
                 except Exception as e:
                     logger.warning(f"FiftyOne load failed {actual_sp}: {e}")
@@ -136,7 +131,7 @@ class CNNClassifier:
     def build(self, typ="mobile"):
         if typ == "mobile":
             logger.info("Building MobileNetV2...")
-            base = MobileNetV2(input_shape=(*self.size, 3), include_top=False, weights='imagenet')
+            base = MobileNetV2(input_shape=(*self.size, 3), include_top=False, weights=None)
             base.trainable = False
             self.model = models.Sequential([base, layers.GlobalAveragePooling2D(), layers.Dense(256, activation='relu'), 
                                            layers.Dropout(0.5), layers.Dense(128, activation='relu'), layers.Dropout(0.3), 
@@ -146,18 +141,22 @@ class CNNClassifier:
                                            layers.MaxPooling2D((2,2)), layers.Conv2D(64,(3,3),activation='relu'), 
                                            layers.MaxPooling2D((2,2)), layers.Flatten(), layers.Dense(64,activation='relu'),
                                            layers.Dropout(0.5), layers.Dense(self.nc, activation='softmax')])
-        self.model.compile(optimizer=Adam(0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
     
     def train(self, tx, tl, vx, vl, ep=10, bs=32):
         logger.info(f"Training {ep} epochs, bs={bs}...")
-        h = self.model.fit(tx, tl, validation_data=(vx,vl), epochs=ep, batch_size=bs, verbose=1)
-        logger.info("="*60)
-        logger.info(f"Loss: {h.history['loss'][-1]:.4f} | Acc: {h.history['accuracy'][-1]:.4f}")
-        logger.info(f"Val Loss: {h.history['val_loss'][-1]:.4f} | Val Acc: {h.history['val_accuracy'][-1]:.4f}")
-        best = max(h.history['val_accuracy'])
-        logger.info(f"Best Val Acc: {best:.4f} (Epoch {h.history['val_accuracy'].index(best)+1})")
-        logger.info("="*60)
-        return h.history
+        try:
+            h = self.model.fit(tx, tl, validation_data=(vx,vl), epochs=ep, batch_size=bs, verbose=0)
+            logger.info("="*60)
+            logger.info(f"Loss: {h.history['loss'][-1]:.4f} | Acc: {h.history['accuracy'][-1]:.4f}")
+            logger.info(f"Val Loss: {h.history['val_loss'][-1]:.4f} | Val Acc: {h.history['val_accuracy'][-1]:.4f}")
+            best = max(h.history['val_accuracy'])
+            logger.info(f"Best Val Acc: {best:.4f} (Epoch {h.history['val_accuracy'].index(best)+1})")
+            logger.info("="*60)
+            return h.history
+        except Exception as e:
+            logger.error(f"Training failed: {e}")
+            return None
     
     def predict(self, x): return self.model.predict(x)
     def save(self, path):
@@ -168,7 +167,8 @@ class CNNClassifier:
 class SparkProcessor:
     def __init__(self, app="CNN"):
         try:
-            self.spark = SparkSession.builder.appName(app).config("spark.driver.maxResultSize","2g")\
+            self.spark = SparkSession.builder.appName(app).master("local[*]").config("spark.driver.memory","2g")\
+                .config("spark.executor.memory","1g").config("spark.driver.maxResultSize","1g")\
                 .config("spark.executor.maxResultSize","1g").config("spark.executor.heartbeatInterval","60s")\
                 .config("spark.network.timeout","120s").config("spark.python.worker.memory","512m")\
                 .config("spark.shuffle.compress","true").config("spark.shuffle.spill.compress","true").getOrCreate()
@@ -185,16 +185,18 @@ class SparkProcessor:
         try:
             rdd = self.spark.sparkContext.binaryFiles(f"{paths[0].rsplit('/',1)[0]}/*") if paths and paths[0].startswith('hdfs://') else self.spark.sparkContext.parallelize(paths, min(8, len(paths)))
             def proc_bin(kv):
+                import numpy as np_local
+                import cv2 as cv2_local
                 try:
                     path, data = kv
-                    nparr = np.frombuffer(data, np.uint8)
-                    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                    nparr = np_local.frombuffer(data, np_local.uint8)
+                    img = cv2_local.imdecode(nparr, cv2_local.IMREAD_COLOR)
                     if img is None: return None
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    img = cv2.resize(img, (224, 224))
-                    norm = img.astype(np.float32) / 255.0
-                    gray = cv2.cvtColor((norm*255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
-                    edges = cv2.Canny(gray, 100, 200)
+                    img = cv2_local.cvtColor(img, cv2_local.COLOR_BGR2RGB)
+                    img = cv2_local.resize(img, (224, 224))
+                    norm = img.astype(np_local.float32) / 255.0
+                    gray = cv2_local.cvtColor((norm*255).astype(np_local.uint8), cv2_local.COLOR_RGB2GRAY)
+                    edges = cv2_local.Canny(gray, 100, 200)
                     edge_d = float(edges.sum()/(edges.shape[0]*edges.shape[1]))
                     return {'path': path, 'image': norm.tolist(), 'edge_density': edge_d}
                 except: return None
@@ -235,7 +237,7 @@ def main():
         'nc': 80, 
         'bs': 128, 
         'ep': 5,
-        'max': {'train': 100, 'val': 30, 'test': 20}
+        'max': {'train': 500, 'val': 150, 'test': 100}
         }
     
     subprocess.run(f"hdfs dfs -mkdir -p {cfg['dir']}", shell=True, capture_output=True)
@@ -269,7 +271,7 @@ def main():
             ts_lab_real = labs['test'][:len(ts_dat)]
             
             logger.info(f"Train={len(tr_img)}({len(set(tr_lab_real))}cls) Val={len(vl_img)} Test={len(ts_img)}")
-            logger.info("\nStep 4: Training CNN \...")
+            logger.info("\nStep 4: Training CNN...")
             clf.build("mobile")
             clf.train(tr_img, tr_lab, vl_img, vl_lab, cfg['ep'], cfg['bs'])
             
