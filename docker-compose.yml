@@ -1,0 +1,102 @@
+services:
+  # Master container: HDFS (NameNode + DataNode) + YARN (ResourceManager + NodeManager) + Spark Master
+  spark-master:
+    container_name: spark-master
+    build: .
+    image: cluster-spark-hadoop:latest
+    hostname: spark-master
+    entrypoint: ["/usr/bin/supervisord"]
+    command: ["-c", "/etc/supervisor/conf.d/supervisord.conf"]
+    depends_on: []
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      HADOOP_HOME: /opt/hadoop
+      HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+      SPARK_HOME: /opt/spark
+      SPARK_MASTER_HOST: spark-master
+      SPARK_MASTER_PORT: 7077
+      SPARK_MASTER_WEBUI_PORT: 8080
+    volumes:
+      - namenode:/hadoop/dfs/name
+      - datanode:/hadoop/dfs/data
+      - spark-logs:/opt/spark/spark-events
+      - yarn-logs:/var/log/hadoop-yarn
+      - ./data:/opt/spark/data
+      - ./processing.py:/opt/spark/processing.py
+    ports:
+      - "8080:8080"    
+    networks:
+      - spark-hadoop
+
+  # Worker 1: Spark Worker + YARN NodeManager
+  spark-worker-1:
+    container_name: spark-worker-1
+    build: .
+    image: cluster-spark-hadoop:latest
+    hostname: spark-worker-1
+    depends_on:
+      - spark-master
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      HADOOP_HOME: /opt/hadoop
+      HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+      SPARK_HOME: /opt/spark
+      SPARK_MASTER_URL: "spark://spark-master:7077"
+    volumes:
+      - worker1-yarn-logs:/var/log/hadoop-yarn
+      - spark-logs:/opt/spark/spark-events
+    ports:
+      - "8081:8081" 
+    networks:
+      - spark-hadoop
+    command: >
+      /bin/bash -c "
+      /opt/spark/sbin/start-slave.sh spark://spark-master:7077 &&
+      /opt/hadoop/bin/yarn nodemanager &&
+      tail -f /dev/null
+      "
+
+  # Worker 2: Spark Worker + YARN NodeManager
+  spark-worker-2:
+    container_name: spark-worker-2
+    build: .
+    image: cluster-spark-hadoop:latest
+    hostname: spark-worker-2
+    depends_on:
+      - spark-master
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      HADOOP_HOME: /opt/hadoop
+      HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+      SPARK_HOME: /opt/spark
+      SPARK_MASTER_URL: "spark://spark-master:7077"
+    volumes:
+      - worker2-yarn-logs:/var/log/hadoop-yarn
+      - spark-logs:/opt/spark/spark-events
+    ports:
+      - "8082:8081" 
+    networks:
+      - spark-hadoop
+    command: >
+      /bin/bash -c "
+      /opt/spark/sbin/start-slave.sh spark://spark-master:7077 &&
+      /opt/hadoop/bin/yarn nodemanager &&
+      tail -f /dev/null
+      "
+
+volumes:
+  spark-logs:
+  namenode:
+  datanode:
+  yarn-logs:
+  worker1-yarn-logs:
+  worker2-yarn-logs:
+
+networks:
+  spark-hadoop:
+    driver: bridge
