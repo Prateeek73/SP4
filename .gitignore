@@ -43,13 +43,8 @@ env/
 .ipynb_checkpoints/
 *.ipynb
 
-# Logs
-*.log
-logs/
-
 # Spark
 spark-logs/
-*.txt
 
 # OS
 .DS_Store

@@ -26,14 +26,72 @@ services:
       - datanode:/hadoop/dfs/data
       - spark-logs:/opt/spark/spark-events
       - yarn-logs:/var/log/hadoop-yarn
-      - ./data:/opt/spark/data
-      - ./processing.py:/opt/spark/processing.py
+      - spark-data:/opt/spark/data
+      - ./loader.py:/opt/spark/loader.py
+      - ./preprocessing.py:/opt/spark/preprocessing.py
+      - ./spark_vgg_job.py:/opt/spark/spark_vgg_job.py
+      - ./test_model.py:/opt/spark/test_model.py
     ports:
       - "8080:8080"    
     networks:
       - spark-hadoop
+    deploy:
+      resources:
+        limits:
+          cpus: '2.5'  # 2.5 CPU core limit
+          memory: 4G  # 4GB limit for FiftyOne annotation loading
+        reservations:
+          cpus: '2'  # 2 cores reserved
+          memory: 3G  # 3GB reserved RAM
 
-  # Worker 1: Spark Worker + YARN NodeManager
+  # Worker 1: GPU Worker (Modelling) - ML training with GPU acceleration
+  spark-worker-gpu:
+    container_name: spark-worker-gpu
+    build: .
+    image: cluster-spark-hadoop:latest
+    hostname: spark-worker-gpu
+    depends_on:
+      - spark-master
+    runtime: nvidia
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+      HADOOP_HOME: /opt/hadoop
+      HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
+      SPARK_HOME: /opt/spark
+      SPARK_MASTER_URL: "spark://spark-master:7077"
+      CUDA_VISIBLE_DEVICES: "0"
+      NVIDIA_VISIBLE_DEVICES: "all"
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+      WORKER_TYPE: "GPU"
+      WORKER_ROLE: "MODELLING"
+    volumes:
+      - worker-gpu-yarn-logs:/var/log/hadoop-yarn
+      - spark-logs:/opt/spark/spark-events
+      - spark-data:/opt/spark/data
+    ports:
+      - "8081:8081" 
+    networks:
+      - spark-hadoop
+    deploy:
+      resources:
+        limits:
+          cpus: '0'
+          memory: 5.5G
+        reservations:
+          cpus: '0'
+          memory: 4G
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: >
+      /bin/bash -c "
+      /opt/spark/sbin/start-slave.sh spark://spark-master:7077 &&
+      /opt/hadoop/bin/yarn nodemanager &&
+      tail -f /dev/null
+      "
+
+  # Worker 2: CPU Worker 1 (Distributed Processing) - Image preprocessing
   spark-worker-1:
     container_name: spark-worker-1
     build: .
@@ -47,13 +105,24 @@ services:
       HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
       SPARK_HOME: /opt/spark
       SPARK_MASTER_URL: "spark://spark-master:7077"
+      WORKER_TYPE: "CPU"
+      WORKER_ROLE: "PREPROCESSING"
     volumes:
       - worker1-yarn-logs:/var/log/hadoop-yarn
       - spark-logs:/opt/spark/spark-events
+      - spark-data:/opt/spark/data
     ports:
-      - "8081:8081" 
+      - "8082:8081"
     networks:
       - spark-hadoop
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'  # 1.5 CPU core limit
+          memory: 1.5G  # 1.5GB limit (prevents peak RAM issues)
+        reservations:
+          cpus: '1'  # 1 cores reserved
+          memory: 1G  # 1GB reserved RAM
     command: >
       /bin/bash -c "
       /opt/spark/sbin/start-slave.sh spark://spark-master:7077 &&
@@ -61,7 +130,7 @@ services:
       tail -f /dev/null
       "
 
-  # Worker 2: Spark Worker + YARN NodeManager
+  # Worker 3: CPU Worker 2 (Distributed Processing) - Image preprocessing
   spark-worker-2:
     container_name: spark-worker-2
     build: .
@@ -75,13 +144,24 @@ services:
       HADOOP_CONF_DIR: /opt/hadoop/etc/hadoop
       SPARK_HOME: /opt/spark
       SPARK_MASTER_URL: "spark://spark-master:7077"
+      WORKER_TYPE: "CPU"
+      WORKER_ROLE: "PREPROCESSING"
     volumes:
       - worker2-yarn-logs:/var/log/hadoop-yarn
       - spark-logs:/opt/spark/spark-events
+      - spark-data:/opt/spark/data
     ports:
-      - "8082:8081" 
+      - "8083:8081"
     networks:
       - spark-hadoop
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'  # 1.5 CPU cores limit
+          memory: 1.5G  # 1.5GB limit (prevents peak RAM issues)
+        reservations:
+          cpus: '1'  # 1 cores reserved
+          memory: 1G  # 1GB reserved RAM
     command: >
       /bin/bash -c "
       /opt/spark/sbin/start-slave.sh spark://spark-master:7077 &&
@@ -91,9 +171,11 @@ services:
 
 volumes:
   spark-logs:
+  spark-data:
   namenode:
   datanode:
   yarn-logs:
+  worker-gpu-yarn-logs:
   worker1-yarn-logs:
   worker2-yarn-logs:
 

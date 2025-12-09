@@ -1,8 +1,9 @@
-FROM python:3.10-bullseye
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openjdk-11-jdk supervisor curl wget tar gzip && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    python3.10 python3-pip openjdk-11-jdk supervisor curl wget tar gzip && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH=$PATH:$JAVA_HOME/bin
 ENV HADOOP_VERSION=3.3.6
@@ -23,11 +24,11 @@ RUN wget -q https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-$
     rm spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
     mkdir -p ${SPARK_HOME}/spark-events && \
     chmod -R 755 ${SPARK_HOME}
-RUN pip install --no-cache-dir --timeout=3600 \
-    pyarrow==16.1.0 numpy==1.24.0 \
-    opencv-python>=4.5.0 tensorflow>=2.10.0 \
-    scikit-learn>=0.24.0 scipy>=1.5.0 fiftyone>=0.20.0
-ENV PATH=${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin:${SPARK_HOME}/sbin:${SPARK_HOME}/bin:$PATH
+COPY requirements.txt .
+RUN pip install --no-cache-dir --timeout=3600 -r requirements.txt
+ENV CUDA_HOME=/usr/local/cuda
+ENV LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+ENV PATH=${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin:${SPARK_HOME}/sbin:${SPARK_HOME}/bin:${CUDA_HOME}/bin:$PATH
 ENV PYSPARK_PYTHON=python3
 
 RUN mkdir -p /hadoop/dfs/name /hadoop/dfs/data /hadoop/yarn/local /hadoop/yarn/logs /hadoop/tmp && \

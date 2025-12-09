@@ -1,0 +1,396 @@
+2025-12-03 22:43:54.556303: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-12-03 22:43:54.578665: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-12-03 22:43:54.585711: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-12-03 22:43:54.608890: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-12-03 22:43:55.455407: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2025-12-03 22:43:58,496 - INFO - ======================================================================
+2025-12-03 22:43:58,496 - INFO - Apache Spark Job: VGG-Style CNN Training
+2025-12-03 22:43:58,496 - INFO - ======================================================================
+2025-12-03 22:43:58,496 - INFO - 
+Job Configuration:
+2025-12-03 22:43:58,496 - INFO -   - Framework: Apache Spark + TensorFlow
+2025-12-03 22:43:58,496 - INFO -   - Architecture: VGG-style CNN (3 conv blocks)
+2025-12-03 22:43:58,496 - INFO -   - Dataset: COCO subset, 5 classes
+2025-12-03 22:43:58,496 - INFO -   - GPU: NVIDIA GTX 1050 (CUDA 11.8)
+2025-12-03 22:43:58,496 - INFO -   - Distribution: Spark RDD-based parallel processing
+2025-12-03 22:43:58,496 - INFO - ======================================================================
+2025-12-03 22:43:58,496 - INFO - ======================================================================
+2025-12-03 22:43:58,496 - INFO - Initializing Apache Spark Session
+2025-12-03 22:43:58,496 - INFO - ======================================================================
+25/12/03 22:43:58 INFO SparkContext: Running Spark version 3.5.1
+25/12/03 22:43:58 INFO SparkContext: OS info Linux, 6.6.87.2-microsoft-standard-WSL2, amd64
+25/12/03 22:43:58 INFO SparkContext: Java version 11.0.29
+25/12/03 22:43:58 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+25/12/03 22:43:59 INFO ResourceUtils: ==============================================================
+25/12/03 22:43:59 INFO ResourceUtils: No custom resources configured for spark.driver.
+25/12/03 22:43:59 INFO ResourceUtils: ==============================================================
+25/12/03 22:43:59 INFO SparkContext: Submitted application: VGG_CNN_Training
+25/12/03 22:43:59 INFO ResourceProfile: Default ResourceProfile created, executor resources: Map(memoryOverhead -> name: memoryOverhead, amount: 512, script: , vendor: , cores -> name: cores, amount: 1, script: , vendor: , memory -> name: memory, amount: 1400, script: , vendor: , offHeap -> name: offHeap, amount: 0, script: , vendor: ), task resources: Map(cpus -> name: cpus, amount: 1.0)
+25/12/03 22:43:59 INFO ResourceProfile: Limiting resource is cpus at 1 tasks per executor
+25/12/03 22:43:59 INFO ResourceProfileManager: Added ResourceProfile id: 0
+25/12/03 22:43:59 INFO SecurityManager: Changing view acls to: root
+25/12/03 22:43:59 INFO SecurityManager: Changing modify acls to: root
+25/12/03 22:43:59 INFO SecurityManager: Changing view acls groups to: 
+25/12/03 22:43:59 INFO SecurityManager: Changing modify acls groups to: 
+25/12/03 22:43:59 INFO SecurityManager: SecurityManager: authentication disabled; ui acls disabled; users with view permissions: root; groups with view permissions: EMPTY; users with modify permissions: root; groups with modify permissions: EMPTY
+25/12/03 22:43:59 INFO Utils: Successfully started service 'sparkDriver' on port 39273.
+25/12/03 22:43:59 INFO SparkEnv: Registering MapOutputTracker
+25/12/03 22:44:00 INFO SparkEnv: Registering BlockManagerMaster
+25/12/03 22:44:00 INFO BlockManagerMasterEndpoint: Using org.apache.spark.storage.DefaultTopologyMapper for getting topology information
+25/12/03 22:44:00 INFO BlockManagerMasterEndpoint: BlockManagerMasterEndpoint up
+25/12/03 22:44:00 INFO SparkEnv: Registering BlockManagerMasterHeartbeat
+25/12/03 22:44:00 INFO DiskBlockManager: Created local directory at /tmp/blockmgr-dff00330-2072-46eb-88a3-8044423cae49
+25/12/03 22:44:00 INFO MemoryStore: MemoryStore started with capacity 434.4 MiB
+25/12/03 22:44:00 INFO SparkEnv: Registering OutputCommitCoordinator
+25/12/03 22:44:00 INFO JettyUtils: Start Jetty 0.0.0.0:4040 for SparkUI
+25/12/03 22:44:00 INFO Utils: Successfully started service 'SparkUI' on port 4040.
+25/12/03 22:44:00 INFO StandaloneAppClient$ClientEndpoint: Connecting to master spark://spark-master:7077...
+25/12/03 22:44:00 INFO TransportClientFactory: Successfully created connection to spark-master/172.18.0.2:7077 after 35 ms (0 ms spent in bootstraps)
+25/12/03 22:44:00 INFO StandaloneSchedulerBackend: Connected to Spark cluster with app ID app-20251203224400-0000
+25/12/03 22:44:00 INFO Utils: Successfully started service 'org.apache.spark.network.netty.NettyBlockTransferService' on port 39135.
+25/12/03 22:44:00 INFO NettyBlockTransferService: Server created on spark-master:39135
+25/12/03 22:44:00 INFO BlockManager: Using org.apache.spark.storage.RandomBlockReplicationPolicy for block replication policy
+25/12/03 22:44:00 INFO BlockManagerMaster: Registering BlockManager BlockManagerId(driver, spark-master, 39135, None)
+25/12/03 22:44:00 INFO StandaloneAppClient$ClientEndpoint: Executor added: app-20251203224400-0000/0 on worker-20251203224056-172.18.0.5-36671 (172.18.0.5:36671) with 1 core(s)
+25/12/03 22:44:00 INFO BlockManagerMasterEndpoint: Registering block manager spark-master:39135 with 434.4 MiB RAM, BlockManagerId(driver, spark-master, 39135, None)
+25/12/03 22:44:00 INFO StandaloneSchedulerBackend: Granted executor ID app-20251203224400-0000/0 on hostPort 172.18.0.5:36671 with 1 core(s), 1400.0 MiB RAM
+25/12/03 22:44:00 INFO StandaloneAppClient$ClientEndpoint: Executor added: app-20251203224400-0000/1 on worker-20251203224056-172.18.0.5-36671 (172.18.0.5:36671) with 1 core(s)
+25/12/03 22:44:00 INFO StandaloneSchedulerBackend: Granted executor ID app-20251203224400-0000/1 on hostPort 172.18.0.5:36671 with 1 core(s), 1400.0 MiB RAM
+25/12/03 22:44:00 INFO StandaloneAppClient$ClientEndpoint: Executor added: app-20251203224400-0000/2 on worker-20251203224056-172.18.0.5-36671 (172.18.0.5:36671) with 1 core(s)
+25/12/03 22:44:00 INFO StandaloneSchedulerBackend: Granted executor ID app-20251203224400-0000/2 on hostPort 172.18.0.5:36671 with 1 core(s), 1400.0 MiB RAM
+25/12/03 22:44:00 INFO BlockManagerMaster: Registered BlockManager BlockManagerId(driver, spark-master, 39135, None)
+25/12/03 22:44:00 INFO BlockManager: Initialized BlockManager: BlockManagerId(driver, spark-master, 39135, None)
+25/12/03 22:44:01 INFO StandaloneAppClient$ClientEndpoint: Executor updated: app-20251203224400-0000/2 is now RUNNING
+25/12/03 22:44:01 INFO StandaloneAppClient$ClientEndpoint: Executor updated: app-20251203224400-0000/1 is now RUNNING
+25/12/03 22:44:01 INFO StandaloneAppClient$ClientEndpoint: Executor updated: app-20251203224400-0000/0 is now RUNNING
+25/12/03 22:44:01 INFO StandaloneSchedulerBackend: SchedulerBackend is ready for scheduling beginning after reached minRegisteredResourcesRatio: 0.0
+2025-12-03 22:44:02,550 - INFO - Spark Master: spark://spark-master:7077
+2025-12-03 22:44:02,559 - INFO - Spark App ID: app-20251203224400-0000
+2025-12-03 22:44:02,559 - INFO - Available Executors: 3 workers
+2025-12-03 22:44:02,559 - INFO - ======================================================================
+2025-12-03 22:44:02,559 - INFO - 
+======================================================================
+2025-12-03 22:44:02,559 - INFO - STEP 1: Batch-wise Distributed Data Loading via Spark RDD
+2025-12-03 22:44:02,559 - INFO - Loading 2 batches × 5 chunks = 10 total chunks
+2025-12-03 22:44:02,559 - INFO - ======================================================================
+2025-12-03 22:44:02,559 - INFO - 
+--- Batch 1/2: Loading chunks 0-4 ---
+2025-12-03 22:44:14,871 - INFO -   Batch 1: Loaded 250 → Filtered to 250 images → Saved
+2025-12-03 22:44:14,873 - INFO - 
+--- Batch 2/2: Loading chunks 5-9 ---
+2025-12-03 22:44:17,183 - INFO -   Batch 2: Loaded 250 → Filtered to 250 images → Saved
+2025-12-03 22:44:17,192 - INFO - 
+✓ Total data prepared: 500 images from 10 chunks
+2025-12-03 22:44:17,192 - INFO - ✓ All batches saved to /opt/spark/data/batches
+2025-12-03 22:44:17,193 - INFO - Classes in dataset: ['person', 'cat', 'dog', 'car', 'chair']
+2025-12-03 22:44:17,239 - INFO - 
+======================================================================
+2025-12-03 22:44:17,240 - INFO - STEP 2: Preparing Training Data from Batches
+2025-12-03 22:44:17,240 - INFO - ======================================================================
+2025-12-03 22:44:17,240 - INFO - Label mapping for 5 classes:
+2025-12-03 22:44:17,240 - INFO -   0: person
+2025-12-03 22:44:17,240 - INFO -   1: cat
+2025-12-03 22:44:17,240 - INFO -   2: dog
+2025-12-03 22:44:17,240 - INFO -   3: car
+2025-12-03 22:44:17,240 - INFO -   4: chair
+2025-12-03 22:44:17,240 - INFO - Total training images: 500
+2025-12-03 22:44:17,240 - INFO - Training labels shape: (500, 5)
+2025-12-03 22:44:17,241 - INFO - ✓ Batch metadata saved to /opt/spark/data/training
+2025-12-03 22:44:17,241 - INFO - ✓ 2 batch files available in /opt/spark/data/batches
+2025-12-03 22:44:17,241 - INFO - ======================================================================
+2025-12-03 22:44:17,241 - INFO - 
+======================================================================
+2025-12-03 22:44:17,241 - INFO - STEP 3: Training on GPU Worker (TF.Data Streaming)
+2025-12-03 22:44:17,241 - INFO - ======================================================================
+2025-12-03 22:44:17,241 - INFO - Submitting TF.Data streaming training to GPU worker...
+2025-12-03 22:45:48,032 - INFO - 
+======================================================================
+2025-12-03 22:45:48,033 - INFO - GPU Worker Training Output:
+2025-12-03 22:45:48,033 - INFO - ======================================================================
+
+======================================================================
+GPU Training Task - TensorFlow tf.data Streaming Pipeline
+======================================================================
+
+Batch Info:
+  Total images: 500
+  Number of batches: 2
+  Batch directory: /opt/spark/data/batches
+  Labels shape: (500, 5)
+======================================================================
+
+Found 2 batch files:
+  - /opt/spark/data/batches/batch_0.npy
+  - /opt/spark/data/batches/batch_1.npy
+
+======================================================================
+Creating TensorFlow tf.data streaming pipeline...
+======================================================================
+
+Batch index ranges:
+  batch_0.npy: indices 0-249 (250 samples)
+  batch_1.npy: indices 250-499 (250 samples)
+✓ Streaming dataset created
+  - Buffer size: 1000 samples
+  - Batch size: 32
+  - Prefetching enabled
+======================================================================
+
+Building VGG model...
+✓ Model built: 51,476,549 parameters
+======================================================================
+
+Training configuration:
+  Total images: 500
+  Batch size: 32
+  Steps per epoch: 16
+  Epochs: 10
+======================================================================
+Starting training with streaming data pipeline...
+
+Epoch 1/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 5:35 22s/step - accuracy: 0.0625 - loss: 1.6910
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.2422 - loss: 5.3518
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.3316 - loss: 6.5532
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.3503 - loss: 7.1531
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.3727 - loss: 7.2158
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 124ms/step - accuracy: 0.3905 - loss: 7.0971
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 124ms/step - accuracy: 0.4093 - loss: 6.9037
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 2s 262ms/step - accuracy: 0.4231 - loss: 6.6944
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 1s 244ms/step - accuracy: 0.4332 - loss: 6.4859
+10/16 ━━━━━━━━━━━━━━━━━━━━ 1s 231ms/step - accuracy: 0.4423 - loss: 6.2834
+11/16 ━━━━━━━━━━━━━━━━━━━━ 1s 219ms/step - accuracy: 0.4507 - loss: 6.0909
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 211ms/step - accuracy: 0.4589 - loss: 5.9080
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 203ms/step - accuracy: 0.4663 - loss: 5.7378
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 197ms/step - accuracy: 0.4732 - loss: 5.5779
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 192ms/step - accuracy: 0.4789 - loss: 5.4311
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 212ms/step - accuracy: 0.4847 - loss: 5.2937
+16/16 ━━━━━━━━━━━━━━━━━━━━ 26s 213ms/step - accuracy: 0.5723 - loss: 3.2319
+Epoch 2/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 123ms/step - accuracy: 0.6562 - loss: 1.2351
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 123ms/step - accuracy: 0.6641 - loss: 1.2083
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 122ms/step - accuracy: 0.6510 - loss: 1.2056
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 123ms/step - accuracy: 0.6426 - loss: 1.1995
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 123ms/step - accuracy: 0.6366 - loss: 1.1962
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 123ms/step - accuracy: 0.6312 - loss: 1.1920
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 124ms/step - accuracy: 0.6284 - loss: 1.1855
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6275 - loss: 1.1773
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6256 - loss: 1.1740
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6237 - loss: 1.1724
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6225 - loss: 1.1701
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6221 - loss: 1.1676
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6219 - loss: 1.1647
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.6228 - loss: 1.1596
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.6236 - loss: 1.1559
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 126ms/step - accuracy: 0.6241 - loss: 1.1546
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 126ms/step - accuracy: 0.6309 - loss: 1.1348
+Epoch 3/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.5938 - loss: 1.0922
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 124ms/step - accuracy: 0.5859 - loss: 1.1233
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.6094 - loss: 1.1188
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.6191 - loss: 1.1275
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.6228 - loss: 1.1333
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.6293 - loss: 1.1288
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 127ms/step - accuracy: 0.6318 - loss: 1.1308
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6334 - loss: 1.1298
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 128ms/step - accuracy: 0.6317 - loss: 1.1372
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.6295 - loss: 1.1416
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.6270 - loss: 1.1454
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.6251 - loss: 1.1482
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.6238 - loss: 1.1499
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.6226 - loss: 1.1522
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 128ms/step - accuracy: 0.6221 - loss: 1.1530
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 128ms/step - accuracy: 0.6219 - loss: 1.1531
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 128ms/step - accuracy: 0.6191 - loss: 1.1541
+Epoch 4/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 127ms/step - accuracy: 0.5312 - loss: 1.2559
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 123ms/step - accuracy: 0.5234 - loss: 1.2681
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 122ms/step - accuracy: 0.5365 - loss: 1.2360
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 122ms/step - accuracy: 0.5430 - loss: 1.2171
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 124ms/step - accuracy: 0.5519 - loss: 1.2001
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.5589 - loss: 1.1868
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.5632 - loss: 1.1757
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5690 - loss: 1.1640
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5740 - loss: 1.1539
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 124ms/step - accuracy: 0.5776 - loss: 1.1471
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5803 - loss: 1.1415
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5834 - loss: 1.1364
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5866 - loss: 1.1306
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5895 - loss: 1.1252
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5919 - loss: 1.1207
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 125ms/step - accuracy: 0.5941 - loss: 1.1166
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 125ms/step - accuracy: 0.6270 - loss: 1.0552
+Epoch 5/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 124ms/step - accuracy: 0.6875 - loss: 0.8705
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 125ms/step - accuracy: 0.6562 - loss: 0.8704
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.6597 - loss: 0.8519
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6589 - loss: 0.8480
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6583 - loss: 0.8475
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6580 - loss: 0.8476
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6577 - loss: 0.8485
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6566 - loss: 0.8506
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 128ms/step - accuracy: 0.6531 - loss: 0.8566
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 128ms/step - accuracy: 0.6499 - loss: 0.8654
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 128ms/step - accuracy: 0.6472 - loss: 0.8743
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.6453 - loss: 0.8808
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.6441 - loss: 0.8858
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.6434 - loss: 0.8893
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.6431 - loss: 0.8925
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.6436 - loss: 0.8938
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 129ms/step - accuracy: 0.6504 - loss: 0.9133
+Epoch 6/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 127ms/step - accuracy: 0.6562 - loss: 0.9833
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.6797 - loss: 0.9163
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 127ms/step - accuracy: 0.6823 - loss: 0.8930
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.6855 - loss: 0.8723
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 129ms/step - accuracy: 0.6909 - loss: 0.8597
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 129ms/step - accuracy: 0.6938 - loss: 0.8510
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 129ms/step - accuracy: 0.6968 - loss: 0.8417
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 129ms/step - accuracy: 0.6980 - loss: 0.8355
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7000 - loss: 0.8298
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7015 - loss: 0.8250
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7028 - loss: 0.8199
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7046 - loss: 0.8139
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7066 - loss: 0.8073
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7086 - loss: 0.8008
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7104 - loss: 0.7945
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 129ms/step - accuracy: 0.7118 - loss: 0.7900
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 129ms/step - accuracy: 0.7324 - loss: 0.7222
+Epoch 7/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 129ms/step - accuracy: 0.7188 - loss: 0.7541
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.7422 - loss: 0.7060
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 129ms/step - accuracy: 0.7552 - loss: 0.6781
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.7656 - loss: 0.6646
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 127ms/step - accuracy: 0.7737 - loss: 0.6542
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.7802 - loss: 0.6469
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.7855 - loss: 0.6404
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 128ms/step - accuracy: 0.7888 - loss: 0.6342
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.7907 - loss: 0.6305
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.7926 - loss: 0.6262
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.7949 - loss: 0.6202
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.7966 - loss: 0.6163
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.7982 - loss: 0.6120
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.8000 - loss: 0.6072
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.8015 - loss: 0.6021
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 127ms/step - accuracy: 0.8025 - loss: 0.5979
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 127ms/step - accuracy: 0.8164 - loss: 0.5350
+Epoch 8/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 126ms/step - accuracy: 0.9062 - loss: 0.4129
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 127ms/step - accuracy: 0.9141 - loss: 0.3771
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 130ms/step - accuracy: 0.9115 - loss: 0.3600
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 132ms/step - accuracy: 0.9102 - loss: 0.3449
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 132ms/step - accuracy: 0.9044 - loss: 0.3440
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.8995 - loss: 0.3436
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.8979 - loss: 0.3408
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.8975 - loss: 0.3369
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8973 - loss: 0.3332
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8976 - loss: 0.3297
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8978 - loss: 0.3263
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8979 - loss: 0.3239
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8978 - loss: 0.3222
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8981 - loss: 0.3200
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8988 - loss: 0.3173
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.8995 - loss: 0.3148
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 131ms/step - accuracy: 0.9102 - loss: 0.2774
+Epoch 9/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 132ms/step - accuracy: 0.8750 - loss: 0.3015
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 133ms/step - accuracy: 0.9062 - loss: 0.2484
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 134ms/step - accuracy: 0.9201 - loss: 0.2210
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 134ms/step - accuracy: 0.9264 - loss: 0.2084
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 152ms/step - accuracy: 0.9311 - loss: 0.2006
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 148ms/step - accuracy: 0.9339 - loss: 0.1963
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 146ms/step - accuracy: 0.9370 - loss: 0.1915
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 144ms/step - accuracy: 0.9395 - loss: 0.1876
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 1s 143ms/step - accuracy: 0.9416 - loss: 0.1849
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 143ms/step - accuracy: 0.9431 - loss: 0.1832
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 141ms/step - accuracy: 0.9444 - loss: 0.1813
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 141ms/step - accuracy: 0.9453 - loss: 0.1798
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 140ms/step - accuracy: 0.9458 - loss: 0.1787
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 139ms/step - accuracy: 0.9460 - loss: 0.1776
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 139ms/step - accuracy: 0.9463 - loss: 0.1768
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 139ms/step - accuracy: 0.9465 - loss: 0.1760
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 139ms/step - accuracy: 0.9492 - loss: 0.1637
+Epoch 10/10
+
+ 1/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.9062 - loss: 0.2760
+ 2/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.9297 - loss: 0.2303
+ 3/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.9427 - loss: 0.2105
+ 4/16 ━━━━━━━━━━━━━━━━━━━━ 1s 131ms/step - accuracy: 0.9512 - loss: 0.1957
+ 5/16 ━━━━━━━━━━━━━━━━━━━━ 1s 132ms/step - accuracy: 0.9572 - loss: 0.1839
+ 6/16 ━━━━━━━━━━━━━━━━━━━━ 1s 133ms/step - accuracy: 0.9617 - loss: 0.1742
+ 7/16 ━━━━━━━━━━━━━━━━━━━━ 1s 133ms/step - accuracy: 0.9646 - loss: 0.1663
+ 8/16 ━━━━━━━━━━━━━━━━━━━━ 1s 133ms/step - accuracy: 0.9661 - loss: 0.1606
+ 9/16 ━━━━━━━━━━━━━━━━━━━━ 0s 133ms/step - accuracy: 0.9672 - loss: 0.1556
+10/16 ━━━━━━━━━━━━━━━━━━━━ 0s 133ms/step - accuracy: 0.9683 - loss: 0.1511
+11/16 ━━━━━━━━━━━━━━━━━━━━ 0s 132ms/step - accuracy: 0.9691 - loss: 0.1471
+12/16 ━━━━━━━━━━━━━━━━━━━━ 0s 132ms/step - accuracy: 0.9699 - loss: 0.1433
+13/16 ━━━━━━━━━━━━━━━━━━━━ 0s 132ms/step - accuracy: 0.9708 - loss: 0.1399
+14/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.9716 - loss: 0.1366
+15/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.9722 - loss: 0.1337
+16/16 ━━━━━━━━━━━━━━━━━━━━ 0s 131ms/step - accuracy: 0.9727 - loss: 0.1314
+16/16 ━━━━━━━━━━━━━━━━━━━━ 2s 131ms/step - accuracy: 0.9805 - loss: 0.0968
+
+============================================================
+Training complete! Final accuracy: 0.9805
+Model saved: /opt/spark/data/models/vgg_final.keras
+============================================================
+2025-12-03 22:44:18.998825: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-12-03 22:44:19.034586: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2025-12-03 22:44:19.042800: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2025-12-03 22:44:19.064419: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-12-03 22:44:20.842999: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1764801864.391936     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801865.571520     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801865.571647     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801869.092542     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801869.092724     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801869.092833     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801869.585003     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+I0000 00:00:1764801869.585197     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+2025-12-03 22:44:29.585235: I tensorflow/core/common_runtime/gpu/gpu_device.cc:2112] Could not identify NUMA node of platform GPU id 0, defaulting to 0.  Your kernel may not have been built with NUMA support.
+I0000 00:00:1764801869.585324     634 cuda_executor.cc:1001] could not open file to read NUMA node: /sys/bus/pci/devices/0000:01:00.0/numa_node
+Your kernel may have been built without NUMA support.
+2025-12-03 22:44:29.585377: I tensorflow/core/common_runtime/gpu/gpu_device.cc:2021] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 2863 MB memory:  -> device: 0, name: NVIDIA GeForce GTX 1050, pci bus id: 0000:01:00.0, compute capability: 6.1
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1764801880.717141     666 service.cc:146] XLA service 0x74585c0053a0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1764801880.718930     666 service.cc:154]   StreamExecutor device (0): NVIDIA GeForce GTX 1050, Compute Capability 6.1
+2025-12-03 22:44:40.953781: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:268] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+2025-12-03 22:44:41.545345: I external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:531] Loaded cuDNN version 8907
+2025-12-03 22:44:49.881873: E external/local_xla/xla/service/slow_operation_alarm.cc:65] Trying algorithm eng0{} for conv (f32[64,32,3,3]{3,2,1,0}, u8[0]{0}) custom-call(f32[32,32,112,112]{3,2,1,0}, f32[32,64,112,112]{3,2,1,0}), window={size=3x3 pad=1_1x1_1}, dim_labels=bf01_oi01->bf01, custom_call_target="__cudnn$convBackwardFilter", backend_config={"operation_queue_id":"0","wait_on_operation_queues":[],"cudnn_conv_backend_config":{"conv_result_scale":1,"activation_mode":"kNone","side_input_scale":0,"leakyrelu_alpha":0},"force_earliest_schedule":false} is taking a while...
+2025-12-03 22:44:50.172044: E external/local_xla/xla/service/slow_operation_alarm.cc:133] The operation took 1.290345637s
+Trying algorithm eng0{} for conv (f32[64,32,3,3]{3,2,1,0}, u8[0]{0}) custom-call(f32[32,32,112,112]{3,2,1,0}, f32[32,64,112,112]{3,2,1,0}), window={size=3x3 pad=1_1x1_1}, dim_labels=bf01_oi01->bf01, custom_call_target="__cudnn$convBackwardFilter", backend_config={"operation_queue_id":"0","wait_on_operation_queues":[],"cudnn_conv_backend_config":{"conv_result_scale":1,"activation_mode":"kNone","side_input_scale":0,"leakyrelu_alpha":0},"force_earliest_schedule":false} is taking a while...
+2025-12-03 22:44:53.563920: I external/local_xla/xla/stream_executor/cuda/cuda_asm_compiler.cc:393] ptxas warning : Registers are spilled to local memory in function 'loop_add_subtract_fusion_5', 4 bytes spill stores, 12 bytes spill loads
+ptxas warning : Registers are spilled to local memory in function 'loop_add_subtract_fusion_4', 4 bytes spill stores, 12 bytes spill loads
+
+I0000 00:00:1764801893.581130     666 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+2025-12-03 22:45:15.874093: W external/local_tsl/tsl/framework/cpu_allocator_impl.cc:83] Allocation of 205520896 exceeds 10% of free system memory.
+2025-12-03 22:45:17.602777: W external/local_tsl/tsl/framework/cpu_allocator_impl.cc:83] Allocation of 205520896 exceeds 10% of free system memory.
+2025-12-03 22:45:18.749771: W external/local_tsl/tsl/framework/cpu_allocator_impl.cc:83] Allocation of 205520896 exceeds 10% of free system memory.
+
+2025-12-03 22:45:48,034 - INFO - ======================================================================
+2025-12-03 22:45:48,034 - INFO - 
+======================================================================
+2025-12-03 22:45:48,034 - INFO - Spark Job Completed Successfully!
+2025-12-03 22:45:48,034 - INFO - Model saved: /opt/spark/data/models/vgg_final.keras
+2025-12-03 22:45:48,034 - INFO - ======================================================================
+2025-12-03 22:45:49,049 - INFO - Closing down clientserver connection
